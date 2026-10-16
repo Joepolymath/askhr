@@ -1,0 +1,39 @@
+# ---- Secrets: never commit real env files (the template is committed) ----
+.env
+.env.*
+!.env.example
+
+# ---- Python (backend) ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# ---- Node (frontend) ----
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+npm-debug.log*
+
+# ---- Logs ----
+*.log
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Note: backend/sample_docs/*.docx and *.pdf are generated sample data and ARE
+# committed on purpose (seed.py and the eval depend on them).
