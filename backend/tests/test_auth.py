@@ -51,6 +51,44 @@ async def test_valid_token_accepted(client, admin_headers):
     assert resp.status_code == 200
 
 
-async def test_chat_is_public(client):
-    resp = await client.post("/api/chat", json={"question": "hello"})
+async def test_chat_requires_employee(client, admin_headers):
+    assert (await client.post("/api/chat", json={"question": "hello"})).status_code == 401
+    # An admin token is not an employee sign-in.
+    assert (await client.post("/api/chat", headers=admin_headers, json={"question": "hello"})).status_code == 401
+
+
+async def test_employee_login(client, employee_headers):
+    me = await client.get("/api/auth/me", headers=employee_headers)
+    assert me.status_code == 200 and me.json()["name"] == "Chiamaka Obi"
+    assert (await client.post("/api/chat", headers=employee_headers, json={"question": "hello"})).status_code == 200
+
+
+async def test_employee_login_is_case_insensitive(client, admin_headers, employee_headers):
+    resp = await client.post("/api/auth/login", json={"email": " Chiamaka.Obi@TEST.example", "employee_id": "nwl-0126 "})
     assert resp.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "email,eid",
+    [("chiamaka.obi@test.example", "NWL-9999"), ("nobody@test.example", "NWL-0126")],
+)
+async def test_employee_login_mismatch(client, employee_headers, email, eid):
+    resp = await client.post("/api/auth/login", json={"email": email, "employee_id": eid})
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "That email and employee ID don't match"
+
+
+async def test_removing_access_or_changing_id_signs_out(client, admin_headers, employee_headers):
+    person = (await client.get("/api/admin/people", headers=admin_headers)).json()[0]
+    await client.put(f"/api/admin/people/{person['id']}", headers=admin_headers, json={**person, "employee_id": "NWL-0200"})
+    assert (await client.get("/api/auth/me", headers=employee_headers)).status_code == 401
+
+    resp = await client.post("/api/auth/login", json={"email": person["email"], "employee_id": "NWL-0200"})
+    headers = {"Authorization": f"Bearer {resp.json()['token']}"}
+    await client.put(
+        f"/api/admin/people/{person['id']}",
+        headers=admin_headers,
+        json={**person, "employee_id": "NWL-0200", "has_access": False},
+    )
+    assert (await client.get("/api/auth/me", headers=headers)).status_code == 401
+    assert (await client.post("/api/auth/login", json={"email": person["email"], "employee_id": "NWL-0200"})).status_code == 401

@@ -10,7 +10,7 @@ from app.config import get_settings
 from app.db import get_session
 from app.ingestion.pipeline import find_active_by_title, ingest
 from app.ingestion.validate import FileRejected, detect_type
-from app.models import DocCategory, Document, DocStatus, normalize_title
+from app.models import DocCategory, Document, DocumentFile, DocStatus, normalize_title
 from app.schemas import DocumentOut, DocumentPatch
 
 router = APIRouter(prefix="/api/admin/documents", tags=["documents"], dependencies=[Depends(require_admin)])
@@ -31,18 +31,47 @@ async def _read_limited(file: UploadFile, limit: int) -> bytes:
     return bytes(buf)
 
 
+def with_versions(docs: list[Document]) -> list[DocumentOut]:
+    """Version number (length of the supersedes chain) and, for retired
+    versions, the title of the upload that replaced them."""
+    by_id = {d.id: d for d in docs}
+    replaced_by = {d.supersedes_id: d for d in sorted(docs, key=lambda d: d.uploaded_at) if d.supersedes_id}
+
+    def version(d: Document) -> int:
+        n, seen = 1, {d.id}
+        while d.supersedes_id in by_id and d.supersedes_id not in seen:
+            d = by_id[d.supersedes_id]
+            seen.add(d.id)
+            n += 1
+        return n
+
+    out = []
+    for d in docs:
+        successor = replaced_by.get(d.id)
+        out.append(
+            DocumentOut.model_validate(d).model_copy(
+                update={
+                    "version": version(d),
+                    "replaced_by_title": successor.title if successor and not d.is_active else None,
+                }
+            )
+        )
+    return out
+
+
 @router.get("", response_model=list[DocumentOut])
-async def list_documents(session: AsyncSession = Depends(get_session)) -> list[Document]:
+async def list_documents(session: AsyncSession = Depends(get_session)) -> list[DocumentOut]:
     result = await session.execute(select(Document).order_by(Document.uploaded_at.desc()))
-    return list(result.scalars())
+    return with_versions(list(result.scalars()))
 
 
 @router.get("/{doc_id}", response_model=DocumentOut)
-async def get_document(doc_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> Document:
+async def get_document(doc_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> DocumentOut:
     doc = await session.get(Document, doc_id)
     if doc is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
-    return doc
+    all_docs = list((await session.execute(select(Document).where(Document.title_norm == doc.title_norm))).scalars())
+    return next(d for d in with_versions(all_docs) if d.id == doc.id)
 
 
 @router.post("", response_model=DocumentOut, status_code=status.HTTP_202_ACCEPTED)
@@ -91,6 +120,8 @@ async def upload_document(
         supersedes_id=existing.id if existing is not None else None,
     )
     session.add(doc)
+    await session.flush()
+    session.add(DocumentFile(document_id=doc.id, data=data))
     await session.commit()
     await session.refresh(doc)
 

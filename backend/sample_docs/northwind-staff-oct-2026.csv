@@ -1,0 +1,14 @@
+name,role,email,employee_id,department
+Adaeze Okonkwo,Chief Executive Officer,adaeze.okonkwo@northwindlabs.example,NWL-0001,Executive
+Tunde Bakare,Chief Technology Officer,tunde.bakare@northwindlabs.example,NWL-0003,Engineering
+Funmilayo Adeyemi,Head of People & Culture,funmilayo.adeyemi@northwindlabs.example,NWL-0007,People & Culture
+Ibrahim Musa,Head of Claims,ibrahim.musa@northwindlabs.example,NWL-0012,Claims
+Ngozi Eze,Head of Finance,ngozi.eze@northwindlabs.example,NWL-0019,Finance
+Hauwa Abdullahi,Head of Underwriting,hauwa.abdullahi@northwindlabs.example,NWL-0024,Underwriting
+Segun Ogunleye,Payroll & Benefits Officer,segun.ogunleye@northwindlabs.example,NWL-0038,People & Culture
+Chiamaka Obi,Claims Associate,chiamaka.obi@northwindlabs.example,NWL-0126,Claims
+Yusuf Danjuma,Claims Assessor,yusuf.danjuma@northwindlabs.example,NWL-0131,Claims
+Amina Bello,Underwriter,amina.bello@northwindlabs.example,NWL-0135,Underwriting
+Emeka Uche,Customer Support Lead,emeka.uche@northwindlabs.example,NWL-0142,Customer Support
+Bola Adebayo,Sales Agent Manager,,NWL-0117,Sales
+Tolu Akande,Data Analyst,tolu.akande@northwindlabs.example,NWL-0142,Engineering

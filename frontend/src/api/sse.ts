@@ -1,4 +1,4 @@
-import type { Citation } from "./client";
+import { authHeaders, handleUnauthorized, type Citation } from "./client";
 
 // POST /api/chat streams Server-Sent Events. EventSource only supports GET,
 // so we read the response body stream and parse the SSE frames ourselves.
@@ -8,28 +8,43 @@ export interface ChatTurn {
   content: string;
 }
 
+export type StatusEvent =
+  | { step: "searched"; documents: number }
+  | { step: "found"; passages: number; documents: string[] }
+  | { step: "conflict" };
+
+export interface DoneEvent {
+  chat_id: string;
+  answer: string;
+  citations: Citation[];
+  unanswered: boolean;
+  conflict: boolean;
+}
+
 export interface StreamHandlers {
   onMeta?: (d: { chat_id: string }) => void;
+  onStatus?: (d: StatusEvent) => void;
   onToken: (text: string) => void;
-  onDone: (d: { chat_id: string; answer: string; citations: Citation[]; unanswered: boolean }) => void;
+  onDone: (d: DoneEvent) => void;
   onError: (message: string) => void;
 }
 
 export async function streamChat(
-  body: { question: string; history: ChatTurn[]; employee_name: string | null },
+  body: { question: string; history: ChatTurn[] },
   h: StreamHandlers,
   signal?: AbortSignal,
 ): Promise<void> {
   let res: Response;
+  const headers = authHeaders("/api/chat");
+  headers.set("Content-Type", "application/json");
   try {
-    res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal,
-    });
+    res = await fetch("/api/chat", { method: "POST", headers, body: JSON.stringify(body), signal });
   } catch {
-    h.onError("Couldn't reach the server. Please try again.");
+    if (!signal?.aborted) h.onError("Couldn't reach the server. Please try again.");
+    return;
+  }
+  if (res.status === 401) {
+    handleUnauthorized("/api/chat");
     return;
   }
   if (!res.ok || !res.body) {
@@ -52,6 +67,7 @@ export async function streamChat(
     if (!data) return;
     const payload = JSON.parse(data);
     if (event === "meta") h.onMeta?.(payload);
+    else if (event === "status") h.onStatus?.(payload);
     else if (event === "token") h.onToken(payload.text);
     else if (event === "done") {
       finished = true;
@@ -62,15 +78,19 @@ export async function streamChat(
     }
   };
 
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    let idx;
-    while ((idx = buffer.indexOf("\n\n")) !== -1) {
-      handle(buffer.slice(0, idx));
-      buffer = buffer.slice(idx + 2);
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let idx;
+      while ((idx = buffer.indexOf("\n\n")) !== -1) {
+        handle(buffer.slice(0, idx));
+        buffer = buffer.slice(idx + 2);
+      }
     }
+  } catch {
+    if (signal?.aborted) return; // "Stop generating"
   }
-  if (!finished) h.onError("The answer was interrupted. Please try again.");
+  if (!finished && !signal?.aborted) h.onError("The answer was interrupted. Please try again.");
 }

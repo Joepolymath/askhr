@@ -10,6 +10,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    LargeBinary,
     SmallInteger,
     String,
     Text,
@@ -58,6 +59,7 @@ class Document(Base):
         Enum(DocStatus, name="doc_status"), default=DocStatus.processing
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    page_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
     # The version this upload replaces; it is deactivated once this one is ready.
@@ -70,6 +72,17 @@ class Document(Base):
     chunks: Mapped[list["Chunk"]] = relationship(
         back_populates="document", cascade="all, delete-orphan", passive_deletes=True
     )
+
+
+class DocumentFile(Base):
+    """The original upload, kept so employees can open the full document from a citation."""
+
+    __tablename__ = "document_files"
+
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True
+    )
+    data: Mapped[bytes] = mapped_column(LargeBinary)
 
 
 class Chunk(Base):
@@ -97,6 +110,10 @@ class Person(Base):
     role: Mapped[str] = mapped_column(String(200))
     department: Mapped[str | None] = mapped_column(String(200), nullable=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    # Employees sign in with work email + employee ID. People without an ID
+    # (or with access removed) stay in the directory but can't sign in.
+    employee_id: Mapped[str | None] = mapped_column(String(50), nullable=True, unique=True)
+    has_access: Mapped[bool] = mapped_column(Boolean, default=True)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -110,14 +127,22 @@ class CompanyInfo(Base):
     __tablename__ = "company_info"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    name: Mapped[str] = mapped_column(String(200), default="")
+    # "What the company does"
     content: Mapped[str] = mapped_column(Text, default="")
+    mission: Mapped[str] = mapped_column(Text, default="")
+    hr_contact_name: Mapped[str] = mapped_column(String(200), default="")
+    hr_contact_email: Mapped[str] = mapped_column(String(320), default="")
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
 
 class ChatLog(Base):
-    """One row per answered question. Feedback updates the same row."""
+    """One row per answered question. Feedback updates the same row.
+
+    `employee_name` is legacy: employees are told HR can't see who asked, so
+    new rows leave it empty."""
 
     __tablename__ = "chat_logs"
 
@@ -127,6 +152,12 @@ class ChatLog(Base):
     answer: Mapped[str] = mapped_column(Text, default="")
     citations: Mapped[list] = mapped_column(JSONB, default=list)
     unanswered: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    # The answer reported that two documents disagree.
+    conflict: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Best-matching document for an unanswered question (only when above threshold).
+    closest_document_title: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    # HR dismissed this unanswered question from the Insights gap list.
+    gap_dismissed: Mapped[bool] = mapped_column(Boolean, default=False)
     top_similarity: Mapped[float | None] = mapped_column(Float, nullable=True)
     rating: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     created_at: Mapped[datetime] = mapped_column(

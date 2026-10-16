@@ -60,6 +60,7 @@ async def ingest(doc_id: uuid.UUID, data: bytes) -> None:
         )
         doc.status = DocStatus.ready
         doc.chunk_count = len(chunks)
+        doc.page_count = max((s.page for s in sections if s.page), default=None)
         doc.processed_at = datetime.now(UTC)
         doc.error_message = None
 

@@ -33,6 +33,8 @@ def check(case: dict, result) -> list[str]:
         options = fact if isinstance(fact, list) else [fact]
         if not any(str(o).lower() in text for o in options):
             problems.append(f"missing {' / '.join(map(str, options))}")
+    if case.get("expect_conflict") and not result.conflict:
+        problems.append("expected the sources-disagree flag")
     want = case.get("expect_citation")
     if want and want not in {c.document_title for c in result.citations}:
         problems.append(f"no citation to '{want}'")
@@ -43,7 +45,7 @@ async def main(verbose: bool) -> int:
     cases = yaml.safe_load(QUESTIONS.read_text())
     rows = []
     for case in cases:
-        result = await answer(case["question"], employee_name="eval")
+        result = await answer(case["question"])
         problems = check(case, result)
         rows.append((case, result, problems))
         if verbose:

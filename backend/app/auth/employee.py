@@ -1,13 +1,15 @@
-"""Employee identity.
+"""Employee identity helpers.
 
-For the demo, employees are unauthenticated: the browser sends the name typed
-on first visit. It is only recorded for HR's insights, never trusted for access
-control. With SSO this becomes "read the user from the verified token".
+Employees sign in with work email + employee ID (see routers/employee_auth.py).
+Their identity gates access to the chat but is deliberately not stored with
+their questions: the sign-in page promises HR sees what was asked, not who asked.
 """
 
 
-def employee_name(raw: str | None) -> str | None:
-    if not raw:
-        return None
-    name = " ".join(raw.split())[:200]
-    return name or None
+def normalize_employee_id(raw: str) -> str:
+    """Employee IDs compare case- and whitespace-insensitively ("sav-0142 " == "SAV-0142")."""
+    return "".join(raw.split()).upper()
+
+
+def normalize_email(raw: str) -> str:
+    return raw.strip().lower()

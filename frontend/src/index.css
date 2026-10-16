@@ -2,8 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body,
-#root {
-  height: 100%;
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+  }
+  /* Ochre ring = keyboard focus, everywhere. */
+  :focus-visible {
+    outline: 3px solid theme("colors.ochre.DEFAULT");
+    outline-offset: 2px;
+  }
+  a {
+    @apply text-ochre hover:text-ochre-800;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 text-[15px] font-medium no-underline transition-colors disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-green px-[18px] font-semibold text-white hover:bg-green-900 hover:text-white disabled:bg-line disabled:text-ink-3;
+  }
+  .btn-secondary {
+    @apply btn border border-line-strong bg-white text-ink hover:bg-subtle hover:text-ink disabled:border-line disabled:text-ink-3 disabled:hover:bg-white;
+  }
+  .btn-ghost {
+    @apply btn px-3.5 font-semibold text-green hover:bg-green-50 hover:text-green-900;
+  }
+  .btn-danger {
+    @apply btn bg-danger px-[18px] font-semibold text-white hover:bg-danger-700 hover:text-white;
+  }
+  .btn-sm {
+    @apply h-9 px-3 text-sm;
+  }
+  .icon-btn {
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-ink-2 transition-colors hover:bg-chip disabled:text-line-strong disabled:hover:bg-transparent;
+  }
+  .field-label {
+    @apply text-sm font-medium text-ink;
+  }
+  .field-hint {
+    @apply text-[13px] leading-5 text-ink-3;
+  }
+  .input {
+    @apply h-11 w-full min-w-0 rounded-lg border border-line-strong bg-white px-3.5 text-[15px] text-ink outline-none placeholder:text-ink-3 focus:border-ochre focus:shadow-[0_0_0_3px_theme(colors.ochre.100)] aria-[invalid=true]:border-danger;
+  }
+  .input:focus-visible {
+    outline: none;
+  }
+  .textarea {
+    @apply input h-auto resize-y py-3 leading-6;
+  }
+  .select {
+    @apply input px-3;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.06em] text-ink-2;
+  }
+  .card {
+    @apply rounded-xl border border-line bg-white;
+  }
+  .th {
+    @apply border-b border-line px-3 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-ink-2;
+  }
 }

@@ -44,7 +44,9 @@ async def clean_db(migrated_db):
     init_engine(os.environ["DATABASE_URL"])
     async with session_factory()() as s:
         await s.execute(text("TRUNCATE chunks, documents, people, chat_logs RESTART IDENTITY CASCADE"))
-        await s.execute(text("UPDATE company_info SET content = ''"))
+        await s.execute(
+            text("UPDATE company_info SET content = '', name = '', mission = '', hr_contact_name = '', hr_contact_email = ''")
+        )
         await s.commit()
     llm = get_llm()
     llm.responder = lambda system, msgs: "NO_ANSWER"
@@ -68,6 +70,19 @@ async def client():
 @pytest.fixture
 async def admin_headers(client):
     resp = await client.post("/api/admin/login", json={"password": "test-password"})
+    return {"Authorization": f"Bearer {resp.json()['token']}"}
+
+
+EMPLOYEE = {"name": "Chiamaka Obi", "role": "Claims Associate", "email": "chiamaka.obi@test.example", "employee_id": "NWL-0126"}
+
+
+@pytest.fixture
+async def employee_headers(client, admin_headers):
+    """Add an employee to the directory and sign in as them."""
+    await client.post("/api/admin/people", headers=admin_headers, json=EMPLOYEE)
+    resp = await client.post(
+        "/api/auth/login", json={"email": EMPLOYEE["email"], "employee_id": EMPLOYEE["employee_id"]}
+    )
     return {"Authorization": f"Bearer {resp.json()['token']}"}
 
 

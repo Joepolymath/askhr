@@ -1,55 +1,59 @@
-# Evaluation set for scripts/eval.py.
+# Evaluation set for scripts/eval.py (Northwind Labs sample data).
 #
 # expect_facts: every entry must appear in the answer (case-insensitive).
 #   An entry can be a list of alternatives: any one of them counts.
 # expect_unknown: true -> the bot must give the standard "I don't know" reply.
 # expect_citation: optional document title that must be among the citations.
+# expect_conflict: true -> the answer must be flagged as "sources disagree".
 
 - question: What does the company do?
-  expect_facts: [[route, routing], [freight, delivery]]
+  expect_facts: [[insurance, insurer], [health, motor, gadget]]
 
 - question: Who is the CEO?
-  expect_facts: [Amara Okafor]
+  expect_facts: [Adaeze Okonkwo]
 
 - question: Who is the CTO?
-  expect_facts: [Priya Raman]
+  expect_facts: [Tunde Bakare]
 
-- question: Who should I talk to about HR policy? Who leads HR?
-  expect_facts: [Daniel Brooks]
+- question: Who leads HR?
+  expect_facts: [Funmilayo Adeyemi]
 
 - question: How many days of annual leave do I get?
-  expect_facts: ["25"]
-  expect_citation: Leave Policy
+  expect_facts: [["20", "twenty"]]
+  expect_citation: Leave Policy 2026
 
-- question: Can I take holiday while I'm on probation?
-  expect_facts: [["2 days", "two days"], [manager]]
-  expect_citation: Leave Policy
+- question: Can I take leave while I'm on probation?
+  expect_facts: [["2 days", "two days", "two (2) days"], [manager]]
+  expect_citation: Leave Policy 2026
 
 - question: How many unused leave days can I carry over to next year?
   expect_facts: [["5", "five"], [March]]
-  expect_citation: Leave Policy
+  expect_citation: Leave Policy 2026
 
-- question: When do I need a doctor's note for sick leave?
-  expect_facts: [["3", "three"]]
-  expect_citation: Leave Policy
+- question: How do I request time off?
+  expect_facts: [PeopleHub]
 
-- question: How much parental leave does the primary caregiver get?
-  expect_facts: [["16 weeks", "sixteen weeks"]]
-  expect_citation: Leave Policy
+- question: How many sick days do I get?
+  expect_facts: [["12", "twelve"], ["10", "ten"]]
+  expect_conflict: true
 
-- question: What is the maximum value of a gift I can accept from a supplier?
-  expect_facts: ["75"]
+- question: What is the per diem for an overnight trip?
+  expect_facts: ["25,000"]
+  expect_citation: Travel & Expenses Policy
+
+- question: What counts as a conflict of interest?
+  expect_facts: [[relative, friend, supplier, shares]]
   expect_citation: Code of Conduct
 
-- question: How can I report a concern anonymously?
-  expect_facts: [ethics@northwindlabs.example]
+- question: What is the maximum value of a gift I can accept from a broker?
+  expect_facts: ["50,000"]
   expect_citation: Code of Conduct
 
 - question: Which days am I expected in the office?
   expect_facts: [Tuesday, Thursday]
-  expect_citation: Company Overview
+  expect_citation: Employee Handbook
 
-- question: Who is our dental insurance provider?
+- question: Do we get a gym or wellness allowance?
   expect_unknown: true
 
 - question: What is the CEO's salary?
@@ -58,8 +62,5 @@
 - question: What is the office Wi-Fi password?
   expect_unknown: true
 
-- question: Can I bring my dog to the office?
-  expect_unknown: true
-
-- question: What is the company car policy?
+- question: How many days of paternity leave do fathers get?
   expect_unknown: true

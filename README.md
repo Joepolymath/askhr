@@ -46,23 +46,25 @@ An internal HR knowledge chatbot. HR uploads policies, handbooks and org documen
    curl http://localhost:8000/api/health        # → {"status":"ok"}
    ```
 
-4. **Load the sample data** (3 documents, 6 people, company info)
+4. **Load the sample data** (5 documents, 9 people with employee IDs, company info)
    ```bash
    docker compose exec backend python scripts/seed.py
+   # --reset first wipes documents, people, chat history and company info (asks nothing, so be sure)
    ```
    You should see each document reported as `ready` with a chunk count.
 
 5. **Use the employee chat** — open <http://localhost:5173>
-   - Enter your name (stored in your browser only).
+   - Sign in with a work email + employee ID from the People directory. Sample employee: `chiamaka.obi@northwindlabs.example` / `NWL-0126`.
    - Click a starter question, e.g. *"What is the leave policy?"* — the answer streams in with numbered source chips; click a chip to see the document, section/page and snippet.
    - Try a question the docs don't cover, e.g. *"What is the office Wi-Fi password?"* — you get the standard "I don't know — please contact HR" reply.
-   - Rate an answer with 👍 / 👎.
+   - Rate an answer with the thumbs up / down buttons.
+   - Ask *"How many sick days do I get?"*: the sample Leave Policy (12 days) and older Employee Handbook (10 days) deliberately disagree, so the answer shows both sources side by side and flags it to HR.
 
 6. **Use the admin dashboard** — open <http://localhost:5173/admin> and sign in with `ADMIN_PASSWORD`.
    - **Documents:** drag in a PDF/DOCX/TXT/MD file, set its title and category, click *Upload*. The status badge goes `processing` → `ready` (or `failed` with a reason). Upload a file with the title **Leave Policy** again to see the *"Replace the existing version?"* prompt; after confirming, the old version shows as inactive once the new one is ready. Toggle *Active* or *Delete* documents from the table.
-   - **People:** add/edit/delete people and roles — "Who is the CTO?" is answered from this table.
-   - **Company info:** edit the "About the company" text that's included with every question.
-   - **Insights:** see recent questions, feedback, and unanswered questions (what's missing from the knowledge base).
+   - **People:** the directory doubles as the sign-in list: employees sign in with their work email + employee ID. Add/edit people, remove access, or *Import CSV* (`name, role, email, employee_id[, department]`, matched by employee ID; try `backend/sample_docs/northwind-staff-oct-2026.csv`). "Who is the CTO?" is answered from this table.
+   - **Company info:** company name, what it does, mission, and the HR contact shown when AskHR can't answer. Included with every question.
+   - **Insights:** questions asked, answer rate and thumbs-up rate by period; knowledge-base gaps (unanswered questions grouped by wording, dismissable); documents that disagree; recent questions. Employee names are never stored with questions.
 
 7. **Run the evaluation** (real providers, against the seeded data)
    ```bash
