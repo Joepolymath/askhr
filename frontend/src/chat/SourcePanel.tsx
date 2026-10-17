@@ -7,7 +7,7 @@ import { SourceNumber } from "./SourceChips";
 
 interface Props {
   citations: Citation[];
-  index: number; // citation.index currently open
+  index: number;
   onNavigate: (index: number) => void;
   onClose: () => void;
   variant: "panel" | "sheet";

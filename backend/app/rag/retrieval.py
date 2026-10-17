@@ -21,9 +21,7 @@ class Retrieved:
 
 
 async def search(session: AsyncSession, query_embedding: list[float], top_k: int) -> list[Retrieved]:
-    """Top-k chunks by cosine similarity, from active + ready documents only.
-
-    The caller applies the similarity threshold so it can still report the best
+    """The caller applies the similarity threshold so it can still report the best
     score for a miss (useful when tuning the threshold).
     """
     # pgvector >= 0.8: keep scanning the HNSW index until enough rows survive
@@ -49,7 +47,7 @@ async def search(session: AsyncSession, query_embedding: list[float], top_k: int
             section=chunk.section,
             page=chunk.page,
             text=chunk.text,
-            similarity=1.0 - float(dist),  # cosine distance -> similarity
+            similarity=1.0 - float(dist),
         )
         for chunk, title, uploaded_at, dist in rows
     ]

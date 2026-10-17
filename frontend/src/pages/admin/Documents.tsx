@@ -18,7 +18,6 @@ function titleFromFilename(name: string) {
   return base.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-/** Best guess from the file name; HR can change it in the table. */
 function guessCategory(name: string): Category {
   const n = name.toLowerCase();
   if (n.includes("handbook")) return "handbook";
@@ -68,7 +67,6 @@ export default function Documents() {
     load();
   }, [load]);
 
-  // Poll while anything is still processing.
   const anyProcessing = docs?.some((d) => d.status === "processing");
   useEffect(() => {
     if (!anyProcessing) return;

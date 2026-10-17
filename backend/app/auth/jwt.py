@@ -1,10 +1,3 @@
-"""Token issuing/verification for admins and employees.
-
-Demo-level auth: admins share one password; employees sign in with their work
-email + employee ID from the people directory. Both get an HS256 JWT. This
-module and deps.py are the only places that know how anyone authenticates, so
-swapping in SSO later means replacing these two files, not touching the routers.
-"""
 import hmac
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -36,7 +29,6 @@ def verify_admin_token(token: str) -> bool:
     return claims.get("role") == "admin"
 
 
-# "Keep me signed in on this device" -> long-lived token; otherwise a work day.
 EMPLOYEE_SESSION_HOURS = 12
 EMPLOYEE_REMEMBER_DAYS = 30
 
@@ -51,7 +43,6 @@ def issue_employee_token(person_id: uuid.UUID, employee_id: str, remember: bool)
 
 
 def verify_employee_token(token: str) -> tuple[uuid.UUID, str] | None:
-    """(person id, employee id) from a valid employee token, else None."""
     try:
         claims = jwt.decode(token, get_settings().jwt_secret, algorithms=[ALGORITHM])
         if claims.get("role") != "employee":

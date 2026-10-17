@@ -19,7 +19,6 @@ MAX_CSV_BYTES = 2 * 1024 * 1024
 REQUIRED_COLUMNS = ("name", "role", "email", "employee_id")
 OPTIONAL_COLUMNS = ("department",)
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-# CSV header spellings people actually use -> our column names.
 _HEADER_ALIASES = {
     "full name": "name", "full_name": "name", "employee name": "name",
     "title": "role", "job title": "role", "position": "role",
@@ -30,7 +29,6 @@ _HEADER_ALIASES = {
 
 
 def _clean(body: PersonIn) -> dict:
-    # Empty optional strings from the form are stored as NULL.
     data = {k: (v.strip() or None) if isinstance(v, str) else v for k, v in body.model_dump().items()}
     if data["email"]:
         data["email"] = normalize_email(data["email"])
@@ -97,9 +95,6 @@ async def delete_person(person_id: uuid.UUID, session: AsyncSession = Depends(ge
     await session.commit()
 
 
-# ---------------------------------------------------------------- CSV import
-
-
 def _read_csv(data: bytes) -> tuple[list[str], list[dict[str, str]]]:
     try:
         text = data.decode("utf-8-sig")
@@ -123,7 +118,7 @@ def _read_csv(data: bytes) -> tuple[list[str], list[dict[str, str]]]:
     records = []
     for values in rows[1:]:
         if not any(v.strip() for v in values):
-            continue  # blank line
+            continue
         records.append({h: (values[i].strip() if i < len(values) else "") for i, h in enumerate(header)})
     return header, records
 
@@ -134,13 +129,11 @@ _FIELD_LABELS = {"name": "name", "role": "role", "email": "email", "department":
 async def _plan(
     session: AsyncSession, data: bytes, filename: str
 ) -> tuple[ImportPreview, list[tuple[ImportRow, Person | None]], bool]:
-    """Classify every row; also returns whether the file has a department column."""
     header, records = _read_csv(data)
     people = list((await session.execute(select(Person))).scalars())
     by_eid = {p.employee_id: p for p in people if p.employee_id}
     by_email = {p.email.lower(): p for p in people if p.email}
 
-    # First pass: where each ID/email appears in the file, to flag duplicates.
     first_row_for_eid: dict[str, int] = {}
     first_row_for_email: dict[str, int] = {}
     for n, rec in enumerate(records, start=2):
@@ -203,7 +196,6 @@ async def _plan(
         filename=filename,
         total_rows=len(rows),
         columns_matched=len([c for c in header if c in REQUIRED_COLUMNS + OPTIONAL_COLUMNS]),
-        # Problems first, then changes, so HR sees what needs attention.
         rows=sorted(rows, key=lambda r: ({"error": 0, "update": 1, "new": 2, "unchanged": 3}[r.result], r.row)),
         new_count=sum(r.result == "new" for r in rows),
         update_count=sum(r.result == "update" for r in rows),

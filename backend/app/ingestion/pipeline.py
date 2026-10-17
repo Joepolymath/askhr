@@ -1,10 +1,3 @@
-"""Background ingestion: parse -> chunk -> embed -> store.
-
-Runs after the upload request has returned. Parsing and chunking are
-synchronous and CPU-bound, so they go to a worker thread; embedding is network
-I/O on the async client. The event loop stays free to serve chat requests
-while a large document is processed.
-"""
 import asyncio
 import logging
 import uuid

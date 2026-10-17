@@ -1,8 +1,3 @@
-"""Chat pipeline: embed -> retrieve -> prompt -> stream -> cite -> log.
-
-`answer_events` yields plain dicts that the router serialises as SSE. The eval
-script and tests call `answer()`, which runs the same pipeline to completion.
-"""
 import logging
 import re
 import uuid
@@ -45,7 +40,6 @@ def unknown_message(contact: str | None = None) -> str:
     )
 
 
-# Signals from _stream_with_sentinel, distinct from text pieces.
 _NO_ANSWER_SIGNAL = object()
 _CONFLICT_SIGNAL = object()
 
@@ -99,10 +93,6 @@ class AnswerResult:
 
 
 async def answer_events(question: str, history: list[HistoryTurn]) -> AsyncIterator[dict]:
-    """Events: meta, status*, token*, then done (or error).
-
-    `status` events drive the "Searched N documents / Found N passages" steps
-    in the UI while the answer is being prepared."""
     settings = get_settings()
     question = question.strip()
 
@@ -115,13 +105,11 @@ async def answer_events(question: str, history: list[HistoryTurn]) -> AsyncItera
             )
         ).scalar_one()
 
-        # 1. Embed and retrieve.
         hits = await _retrieve(session, question, history, settings.top_k)
         sources = [h for h in hits if h.similarity >= settings.similarity_threshold]
         top_similarity = hits[0].similarity if hits else None
 
-        # 2. Structured context that is always included. People whose access
-        # was removed have left, so they no longer answer "who is..." questions.
+        # People whose access was removed have left, so they no longer answer "who is..." questions.
         people = list(
             (await session.execute(select(Person).where(Person.has_access.is_(True)).order_by(Person.name))).scalars()
         )
@@ -137,7 +125,6 @@ async def answer_events(question: str, history: list[HistoryTurn]) -> AsyncItera
         source_titles = list(dict.fromkeys(s.document_title for s in sources))
         yield {"event": "status", "data": {"step": "found", "passages": len(sources), "documents": source_titles}}
 
-        # 3. Nothing at all to answer from: skip the LLM entirely.
         conflict = False
         if not sources and not people and not about:
             final, unanswered = unknown_message(hr_contact), True
@@ -170,13 +157,11 @@ async def answer_events(question: str, history: list[HistoryTurn]) -> AsyncItera
                 yield {"event": "error", "data": {"message": "Sorry, something went wrong. Please try again."}}
                 return
             if not unanswered and NO_ANSWER in final:
-                # Sentinel appeared after some text; treat as unknown.
                 unanswered, final = True, unknown_message(hr_contact)
             if not unanswered and not _cited_indices(final) and _UNSURE.search(final):
                 unanswered = True
             final = final.replace(CONFLICT, "").strip() if not unanswered else final
 
-        # 4. Citations: only the sources the answer actually references.
         cited = [] if unanswered else [i for i in _cited_indices(final) if 1 <= i <= len(sources)]
         citations = [
             Citation(
@@ -242,7 +227,7 @@ async def _stream_with_sentinel(system: str, messages: list[ChatMessage]) -> Asy
                     yield rest
                 continue
             if NO_ANSWER.startswith(stripped) or CONFLICT.startswith(stripped):
-                continue  # still could be a marker; keep buffering
+                continue
             decided = True
             yield head
     if not decided:
@@ -254,7 +239,6 @@ async def _stream_with_sentinel(system: str, messages: list[ChatMessage]) -> Asy
 
 
 async def answer(question: str, history: list[HistoryTurn] | None = None) -> AnswerResult:
-    """Run the full pipeline and return the final result (used by eval and tests)."""
     result: AnswerResult | None = None
     chat_id: uuid.UUID | None = None
     async for event in answer_events(question, history or []):

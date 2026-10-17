@@ -22,8 +22,6 @@ function downloadTemplate() {
 
 const EMPTY: Person = { name: "", role: "", department: "", email: "", employee_id: "", has_access: true, bio: null };
 
-// ---------------------------------------------------------------- edit person
-
 function PersonModal({
   person,
   departments,
@@ -186,8 +184,6 @@ function PersonModal({
     </Modal>
   );
 }
-
-// ---------------------------------------------------------------- CSV import
 
 function ImportModal({ onClose, onDone }: { onClose: () => void; onDone: (message: string) => void }) {
   const [file, setFile] = useState<File | null>(null);
@@ -446,8 +442,6 @@ function ImportModal({ onClose, onDone }: { onClose: () => void; onDone: (messag
     </Modal>
   );
 }
-
-// ---------------------------------------------------------------- page
 
 export default function People() {
   const [people, setPeople] = useState<Person[] | null>(null);

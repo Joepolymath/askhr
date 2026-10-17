@@ -9,7 +9,6 @@ _sessionmaker: async_sessionmaker[AsyncSession] | None = None
 
 
 def init_engine(url: str | None = None) -> None:
-    """(Re)create the engine. Tests call this with the test database URL."""
     global _engine, _sessionmaker
     _engine = create_async_engine(url or get_settings().database_url, pool_pre_ping=True)
     _sessionmaker = async_sessionmaker(_engine, expire_on_commit=False)

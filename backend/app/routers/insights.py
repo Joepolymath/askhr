@@ -15,18 +15,15 @@ router = APIRouter(prefix="/api/admin/insights", tags=["insights"], dependencies
 
 RECENT_LIMIT = 50
 GAP_LIMIT = 20
-# Unanswered questions scanned for grouping; plenty for a company's HR traffic.
 SCAN_LIMIT = 5000
 _NON_WORD = re.compile(r"[^\w\s]")
 
 
 def question_key(question: str) -> str:
-    """Group "How many sick days?" and "how many sick days" as one gap."""
     return " ".join(_NON_WORD.sub(" ", question.lower()).split())
 
 
 def period_window(period: InsightsPeriod, now: datetime) -> tuple[datetime, datetime, datetime]:
-    """(previous start, start, end) for the period and the one before it."""
     week_start = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
     if period == "this_week":
         return week_start - timedelta(days=7), week_start, now
@@ -73,7 +70,6 @@ async def insights(
         for r in recent_rows
     ]
 
-    # Gaps: unanswered questions in the period, grouped by wording, most-asked first.
     unanswered = (
         await session.execute(
             select(ChatLog)
@@ -89,7 +85,7 @@ async def insights(
         (
             Gap(
                 key=key,
-                question=rows[0].question,  # newest wording
+                question=rows[0].question,
                 count=len(rows),
                 last_asked=rows[0].created_at,
                 closest_document_title=next((r.closest_document_title for r in rows if r.closest_document_title), None),
@@ -99,7 +95,6 @@ async def insights(
         key=lambda g: (-g.count, -g.last_asked.timestamp()),
     )[:GAP_LIMIT]
 
-    # Disagreements: grouped by the pair (or set) of documents involved.
     conflict_rows = (
         await session.execute(
             select(ChatLog).where(*in_period, ChatLog.conflict.is_(True)).order_by(ChatLog.created_at.desc())

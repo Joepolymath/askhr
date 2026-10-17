@@ -41,7 +41,6 @@ class DocStatus(str, enum.Enum):
 
 
 def normalize_title(title: str) -> str:
-    """Titles are compared case- and whitespace-insensitively for versioning."""
     return " ".join(title.lower().split())
 
 
@@ -75,8 +74,6 @@ class Document(Base):
 
 
 class DocumentFile(Base):
-    """The original upload, kept so employees can open the full document from a citation."""
-
     __tablename__ = "document_files"
 
     document_id: Mapped[uuid.UUID] = mapped_column(
@@ -139,9 +136,7 @@ class CompanyInfo(Base):
 
 
 class ChatLog(Base):
-    """One row per answered question. Feedback updates the same row.
-
-    `employee_name` is legacy: employees are told HR can't see who asked, so
+    """`employee_name` is legacy: employees are told HR can't see who asked, so
     new rows leave it empty."""
 
     __tablename__ = "chat_logs"
@@ -152,11 +147,9 @@ class ChatLog(Base):
     answer: Mapped[str] = mapped_column(Text, default="")
     citations: Mapped[list] = mapped_column(JSONB, default=list)
     unanswered: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
-    # The answer reported that two documents disagree.
     conflict: Mapped[bool] = mapped_column(Boolean, default=False)
     # Best-matching document for an unanswered question (only when above threshold).
     closest_document_title: Mapped[str | None] = mapped_column(String(300), nullable=True)
-    # HR dismissed this unanswered question from the Insights gap list.
     gap_dismissed: Mapped[bool] = mapped_column(Boolean, default=False)
     top_similarity: Mapped[float | None] = mapped_column(Float, nullable=True)
     rating: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)

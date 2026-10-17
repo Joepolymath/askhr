@@ -53,7 +53,6 @@ async def test_valid_token_accepted(client, admin_headers):
 
 async def test_chat_requires_employee(client, admin_headers):
     assert (await client.post("/api/chat", json={"question": "hello"})).status_code == 401
-    # An admin token is not an employee sign-in.
     assert (await client.post("/api/chat", headers=admin_headers, json={"question": "hello"})).status_code == 401
 
 

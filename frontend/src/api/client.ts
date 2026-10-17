@@ -79,7 +79,6 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   return (res.status === 204 ? undefined : await res.json()) as T;
 }
 
-/** Fetch a protected file and open it in a new tab. */
 export async function openProtectedFile(path: string) {
   // Open the tab synchronously so popup blockers allow it, then point it at the blob.
   const tab = window.open("", "_blank");

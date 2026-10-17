@@ -1,4 +1,3 @@
-"""Deterministic, offline providers for tests (LLM_PROVIDER=fake / EMBEDDING_PROVIDER=fake)."""
 import hashlib
 import math
 import re
@@ -37,5 +36,5 @@ class FakeLLM:
     async def stream(self, system: str, messages: list[ChatMessage]) -> AsyncIterator[str]:
         self.last_system = system
         reply = self.responder(system, messages)
-        for i in range(0, len(reply), 4):  # emit in small pieces, like a real stream
+        for i in range(0, len(reply), 4):
             yield reply[i : i + 4]

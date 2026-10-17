@@ -39,8 +39,6 @@ class EmployeeLoginOut(BaseModel):
 
 
 class PublicInfo(BaseModel):
-    """What the sign-in page and chat need to know about the company."""
-
     company_name: str
     hr_contact_name: str
     hr_contact_role: str | None
@@ -159,8 +157,6 @@ class Citation(BaseModel):
 
 
 class SourceOut(BaseModel):
-    """A cited passage with its neighbours, for the source panel."""
-
     document_id: uuid.UUID
     document_title: str
     mime_type: str

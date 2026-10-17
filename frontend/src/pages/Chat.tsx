@@ -11,7 +11,7 @@ import { greeting } from "../format";
 import { useSession } from "../session";
 import { CompanyName } from "./Welcome";
 
-const HISTORY_TURNS = 6; // last few turns sent for follow-up context
+const HISTORY_TURNS = 6;
 const newId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
 function useIsDesktop() {
@@ -27,7 +27,6 @@ function useIsDesktop() {
 }
 
 const WORD = /[a-z]{4,}/g;
-/** Up to two starter questions that share words with an unanswered question. */
 function relatedQuestions(question: string, pool: string[]): string[] {
   const words = new Set(question.toLowerCase().match(WORD) ?? []);
   const scored = pool
@@ -104,7 +103,6 @@ export default function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
 
-  // Grow the composer with its content, up to a limit.
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;

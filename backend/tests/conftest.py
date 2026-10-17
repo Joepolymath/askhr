@@ -78,7 +78,6 @@ EMPLOYEE = {"name": "Chiamaka Obi", "role": "Claims Associate", "email": "chiama
 
 @pytest.fixture
 async def employee_headers(client, admin_headers):
-    """Add an employee to the directory and sign in as them."""
     await client.post("/api/admin/people", headers=admin_headers, json=EMPLOYEE)
     resp = await client.post(
         "/api/auth/login", json={"email": EMPLOYEE["email"], "employee_id": EMPLOYEE["employee_id"]}

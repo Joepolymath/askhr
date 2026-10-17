@@ -1,13 +1,3 @@
-"""Split Sections into overlapping, token-bounded chunks.
-
-Strategy:
-1. Never merge across sections: a chunk belongs to exactly one heading (and,
-   for PDFs, one page), so its citation is precise.
-2. Inside a section, pack whole paragraphs; if a paragraph is too long, split
-   it into sentences; if a sentence is still too long, split on tokens.
-3. Each new chunk starts with ~OVERLAP tokens from the end of the previous one
-   so facts that straddle a boundary are still retrievable.
-"""
 import re
 from dataclasses import dataclass
 
@@ -43,7 +33,6 @@ class ChunkData:
 
 
 def _units(paragraph: str) -> list[str]:
-    """Break a paragraph into pieces no longer than MAX_TOKENS."""
     if count_tokens(paragraph) <= MAX_TOKENS:
         return [paragraph]
     out: list[str] = []
@@ -57,7 +46,6 @@ def _units(paragraph: str) -> list[str]:
 
 
 def _overlap_tail(units: list[str]) -> list[str]:
-    """Trailing units (or a token tail) totalling about OVERLAP_TOKENS."""
     tail: list[str] = []
     total = 0
     for unit in reversed(units):

@@ -1,8 +1,3 @@
-"""Detect file type from content (magic bytes), not just the extension.
-
-We avoid libmagic: the four supported formats are easy to recognise directly,
-and a missing system library is one less thing to break in deployment.
-"""
 import io
 import zipfile
 from pathlib import PurePath
@@ -17,7 +12,6 @@ EXTENSIONS = {".pdf": PDF, ".docx": DOCX, ".txt": TXT, ".md": MD, ".markdown": M
 
 class FileRejected(ValueError):
     """Raised with a message that is safe to show to the admin."""
-
 
 def _looks_like_docx(data: bytes) -> bool:
     if not data.startswith(b"PK\x03\x04"):
@@ -40,7 +34,6 @@ def _looks_like_text(data: bytes) -> bool:
 
 
 def detect_type(data: bytes, filename: str) -> str:
-    """Return the MIME type, or raise FileRejected if content and extension disagree."""
     ext = PurePath(filename).suffix.lower()
     expected = EXTENSIONS.get(ext)
     if expected is None:

@@ -1,9 +1,3 @@
-"""Turn a file into an ordered list of Sections (heading + page + paragraphs).
-
-Structure is preserved here so the chunker can split on real section
-boundaries first and only fall back to size-based splitting inside a section.
-All functions are synchronous and CPU-bound; the pipeline runs them in a thread.
-"""
 import io
 import re
 from dataclasses import dataclass, field
@@ -18,7 +12,6 @@ from app.ingestion.validate import DOCX, MD, PDF
 
 class ParseError(ValueError):
     """Raised with a message that is safe to show to the admin."""
-
 
 SCANNED_PDF_MESSAGE = "No extractable text — scanned PDFs aren't supported yet."
 # Fewer non-whitespace characters than this per page on average means the PDF
@@ -45,18 +38,11 @@ def parse(data: bytes, mime: str) -> list[Section]:
     return [s for s in sections if s.paragraphs]
 
 
-# ---------------------------------------------------------------- headings
-
 _NUMBERED = re.compile(r"^\d+(\.\d+)*\.?\s+\S")
 _SMALL_WORDS = {"a", "an", "and", "as", "at", "by", "for", "in", "of", "on", "or", "the", "to", "with", "&"}
 
 
 def looks_like_heading(line: str) -> bool:
-    """Heuristic heading detection for PDF/plain text, which have no styles.
-
-    A heading is a short line with no sentence-ending punctuation that is
-    numbered ("2.1 Sick Leave"), ALL CAPS, or Title Case.
-    """
     line = line.strip()
     words = line.split()
     if not (2 < len(line) <= 80) or not words or len(words) > 10:
@@ -76,8 +62,6 @@ _LIST_ITEM = re.compile(r"^([-*•]|\d+[.)])\s+")
 
 
 def _paragraphs_from_lines(lines: list[str]) -> list[str]:
-    """Join wrapped lines into paragraphs, splitting on blank lines.
-    List items keep their own line so bullets stay readable in snippets."""
     paras, current = [], ""
     for line in lines:
         line = line.strip()
@@ -92,9 +76,6 @@ def _paragraphs_from_lines(lines: list[str]) -> list[str]:
     if current:
         paras.append(current)
     return paras
-
-
-# ---------------------------------------------------------------- PDF
 
 
 def parse_pdf(data: bytes) -> list[Section]:
@@ -126,9 +107,6 @@ def parse_pdf(data: bytes) -> list[Section]:
         section.paragraphs.extend(_paragraphs_from_lines(buffer))
         sections.append(section)
     return sections
-
-
-# ---------------------------------------------------------------- DOCX
 
 
 def _heading_level(p: Paragraph) -> int | None:
@@ -169,8 +147,6 @@ def parse_docx(data: bytes) -> list[Section]:
                 sections[-1].paragraphs.append("\n".join(rows))
     return sections
 
-
-# ---------------------------------------------------------------- Markdown / text
 
 _MD_HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*#*\s*$")
 

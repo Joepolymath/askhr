@@ -10,7 +10,6 @@ _bearer = HTTPBearer(auto_error=False)
 
 
 async def require_admin(creds: HTTPAuthorizationCredentials | None = Depends(_bearer)) -> None:
-    """Dependency applied to every admin router."""
     if creds is None or not verify_admin_token(creds.credentials):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

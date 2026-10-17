@@ -1,10 +1,3 @@
-"""System prompt construction.
-
-All context (company info, people directory, retrieved sources) goes into the
-system prompt inside clearly delimited tags, with the rules stated first. The
-model is told that context is reference data, not instructions, so text inside
-an uploaded document can't redirect it.
-"""
 import json
 from html import escape
 

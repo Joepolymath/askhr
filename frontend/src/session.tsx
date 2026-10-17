@@ -24,7 +24,6 @@ const EMPTY_INFO: PublicInfo = {
   document_count: 0,
 };
 
-/** Loads company info and, if a token is stored, the signed-in employee. */
 export function SessionProvider({ children }: { children: (ready: boolean) => ReactNode }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [info, setInfo] = useState<PublicInfo | null>(null);

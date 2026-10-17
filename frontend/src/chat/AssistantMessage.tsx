@@ -125,7 +125,6 @@ function Steps({ m }: { m: Message }) {
 }
 
 function ConflictCards({ citations }: { citations: Citation[] }) {
-  // One card per document, newest first.
   const perDoc = new Map<string, Citation>();
   citations.forEach((c) => perDoc.has(c.document_id) || perDoc.set(c.document_id, c));
   const cards = [...perDoc.values()].sort(

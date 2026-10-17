@@ -13,7 +13,7 @@ FIELDS = ("name", "content", "mission", "hr_contact_name", "hr_contact_email")
 
 async def _row(session: AsyncSession) -> CompanyInfo:
     row = await session.get(CompanyInfo, 1)
-    if row is None:  # migration seeds it, but be robust to a manual delete
+    if row is None:
         row = CompanyInfo(id=1, content="", name="", mission="", hr_contact_name="", hr_contact_email="")
         session.add(row)
         await session.flush()

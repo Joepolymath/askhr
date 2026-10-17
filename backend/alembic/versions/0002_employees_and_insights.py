@@ -19,7 +19,6 @@ def upgrade() -> None:
     op.add_column("people", sa.Column("employee_id", sa.String(50)))
     op.add_column("people", sa.Column("has_access", sa.Boolean, nullable=False, server_default=sa.true()))
     op.create_unique_constraint("uq_people_employee_id", "people", ["employee_id"])
-    # Sign-in looks people up by email, case-insensitively.
     op.create_index(
         "uq_people_email_lower",
         "people",

@@ -88,7 +88,6 @@ def upgrade() -> None:
         sa.Column("content", sa.Text, nullable=False, server_default=""),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
     )
-    # Seed the single editable row so the admin form always has something to load.
     op.execute("INSERT INTO company_info (id, content) VALUES (1, '')")
 
     op.create_table(

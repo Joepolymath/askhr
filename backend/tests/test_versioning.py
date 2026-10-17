@@ -34,7 +34,6 @@ async def test_same_title_prompts_then_replaces(client, admin_headers):
     assert docs[r2.json()["id"]]["is_active"] is True
     assert docs[r2.json()["id"]]["supersedes_id"] == v1["id"]
 
-    # Only the new version is retrievable.
     hits = await _retrieve("how many days of annual leave")
     assert hits and all("25 days" in h.text for h in hits)
 

@@ -19,7 +19,6 @@ READ_CHUNK = 1024 * 1024
 
 
 async def _read_limited(file: UploadFile, limit: int) -> bytes:
-    """Read the upload, rejecting it as soon as it exceeds the size limit."""
     buf = bytearray()
     while chunk := await file.read(READ_CHUNK):
         buf.extend(chunk)
@@ -32,8 +31,6 @@ async def _read_limited(file: UploadFile, limit: int) -> bytes:
 
 
 def with_versions(docs: list[Document]) -> list[DocumentOut]:
-    """Version number (length of the supersedes chain) and, for retired
-    versions, the title of the upload that replaced them."""
     by_id = {d.id: d for d in docs}
     replaced_by = {d.supersedes_id: d for d in sorted(docs, key=lambda d: d.uploaded_at) if d.supersedes_id}
 
@@ -163,5 +160,5 @@ async def delete_document(doc_id: uuid.UUID, session: AsyncSession = Depends(get
     doc = await session.get(Document, doc_id)
     if doc is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
-    await session.delete(doc)  # chunks go with it (ON DELETE CASCADE)
+    await session.delete(doc)
     await session.commit()

@@ -8,8 +8,6 @@ interface Props {
   top?: number;
 }
 
-// Overlay + dialog shell. Escape and clicking the scrim close it; focus moves
-// into the dialog on open and back to the trigger on close.
 export default function Modal({ onClose, children, maxWidth = 520, role = "dialog", top = 96 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();

@@ -1,5 +1,3 @@
-// Display formatting shared across pages.
-
 const DAY = 24 * 60 * 60 * 1000;
 
 function startOfDay(d: Date) {
@@ -41,7 +39,6 @@ export function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
 }
 
-/** "Good morning" etc. by local time. */
 export function greeting(now = new Date()) {
   const h = now.getHours();
   return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";

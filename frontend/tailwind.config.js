@@ -1,5 +1,4 @@
 /** @type {import('tailwindcss').Config} */
-// Tokens from the AskHR design canvas ("Foundations & components" sheet).
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {

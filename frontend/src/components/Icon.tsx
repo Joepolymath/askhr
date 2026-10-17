@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-// Stroke icons from the design canvas (24×24 grid, 2px stroke).
 const PATHS: Record<string, ReactNode> = {
   chat: <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />,
   document: <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5" /></>,

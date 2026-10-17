@@ -19,7 +19,7 @@ class OpenAILLM:
             model=self.model,
             messages=[{"role": "system", "content": system}]
             + [{"role": m.role, "content": m.content} for m in messages],
-            temperature=0,  # factual Q&A: we want the same answer every time
+            temperature=0,
             stream=True,
         )
         # `async with` closes the HTTP stream even when the caller stops early

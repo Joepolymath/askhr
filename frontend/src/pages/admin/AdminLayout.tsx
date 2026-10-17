@@ -19,7 +19,6 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [gapCount, setGapCount] = useState(0);
 
-  // Insights badge: open knowledge-base gaps this week.
   const refreshBadge = useCallback(() => {
     api<InsightsData>("/api/admin/insights?period=this_week")
       .then((d) => setGapCount(d.gaps.length))
